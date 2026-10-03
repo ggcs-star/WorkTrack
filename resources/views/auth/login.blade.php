@@ -1,6 +1,6 @@
 <x-guest-layout>
-    <h1 class="text-2xl font-bold text-navy-900">Welcome Back!</h1>
-    <p class="text-sm text-gray-500 mt-1 mb-6">Sign in to your account to continue</p>
+    <h1 class="text-4xl font-bold text-navy-900">Welcome Back!</h1>
+    <p class="text-base text-gray-500 mt-2 mb-8">Sign in to your account to continue</p>
 
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
@@ -66,7 +66,8 @@
         </div>
 
         <p class="text-center text-sm text-gray-500">
-            {{ __("Don't have an account?") }} <span class="text-navy-700 font-medium">Contact Admin</span>
+            {{ __("Don't have an account?") }}
+            <a href="{{ route('register') }}" class="text-sky-700 hover:text-sky-900 font-medium">{{ __('Register here') }}</a>
         </p>
     </form>
 </x-guest-layout>

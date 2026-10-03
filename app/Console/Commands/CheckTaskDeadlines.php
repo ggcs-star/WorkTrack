@@ -35,18 +35,20 @@ class CheckTaskDeadlines extends Command
 
     private function notifyApproaching(): void
     {
-        $tasks = Task::with('assignee')
-            ->where('status', '!=', 'completed')
-            ->whereDate('due_date', now()->addDays(2)->toDateString())
-            ->get();
+        foreach (['week' => 7, 'day' => 1] as $period => $daysBefore) {
+            $tasks = Task::with('assignee')
+                ->where('status', '!=', 'completed')
+                ->whereDate('due_date', now()->addDays($daysBefore)->toDateString())
+                ->get();
 
-        foreach ($tasks as $task) {
-            if ($this->alreadyNotified($task, TaskDeadlineApproaching::class)) {
-                continue;
+            foreach ($tasks as $task) {
+                if ($this->alreadyNotified($task, TaskDeadlineApproaching::class)) {
+                    continue;
+                }
+
+                $task->assignee->notify(new TaskDeadlineApproaching($task, $period));
+                $this->info("Deadline reminder ({$period}) sent for task #{$task->id}");
             }
-
-            $task->assignee->notify(new TaskDeadlineApproaching($task));
-            $this->info("Deadline reminder sent for task #{$task->id}");
         }
     }
 

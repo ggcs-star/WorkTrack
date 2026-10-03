@@ -1,12 +1,16 @@
-<section class="space-y-6">
-    <header>
-        <h2 class="text-lg font-medium text-gray-900">
-            {{ __('Delete Account') }}
-        </h2>
-
-        <p class="mt-1 text-sm text-gray-600">
-            {{ __('Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.') }}
-        </p>
+<section class="space-y-4">
+    <header class="flex items-center gap-2 pb-3 border-b border-gray-200">
+        <span class="h-7 w-7 rounded-md bg-danger-50 text-danger-700 flex items-center justify-center shrink-0">
+            <x-icon name="trash" class="h-4 w-4" />
+        </span>
+        <div>
+            <h2 class="text-base font-semibold text-navy-900">
+                {{ __('Delete Account') }}
+            </h2>
+            <p class="text-sm text-gray-500">
+                {{ __('Once your account is deleted, all of its resources and data will be permanently deleted.') }}
+            </p>
+        </div>
     </header>
 
     <x-danger-button

@@ -1,11 +1,11 @@
 @php
 $hour = now()->hour;
-$greeting = $hour < 12 ? 'Good Morning' : ($hour < 17 ? 'Good Afternoon' : 'Good Evening');
+$greeting = $hour < 12 ? 'Hey' : ($hour < 17 ? 'Good Afternoon' : 'Good Evening');
 @endphp
 
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">👋 {{ $greeting }}, {{ Auth::user()->name }}!</h2>
+        <h2 class="font-semibold text-xl text-navy-700 leading-tight"> {{ "Hello" }}, {{ Auth::user()->name }}!</h2>
         <p class="text-sm text-gray-500">Here's what's happening with your tasks today.</p>
     </x-slot>
 
@@ -56,6 +56,13 @@ $greeting = $hour < 12 ? 'Good Morning' : ($hour < 17 ? 'Good Afternoon' : 'Good
                     <p class="text-sm text-gray-500 mt-2">Assign tasks, monitor progress and achieve your goals with WorkTrack.</p>
                 </div>
             </div>
+
+            <x-due-tasks-panel
+                title="Tasks Due Across Teams"
+                routeName="admin.tasks.show"
+                :todayTasks="$dueToday"
+                :weekTasks="$dueWeek"
+                :monthTasks="$dueMonth" />
         </div>
     </div>
 </x-app-layout>

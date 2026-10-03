@@ -1,6 +1,6 @@
 <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:shrink-0 bg-gradient-to-b from-navy-900 to-navy-800 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)]">
     <nav class="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
-        @role('admin')
+        @if (auth()->user()->hasRole('admin'))
             <x-sidebar-link href="{{ route('admin.dashboard') }}" icon="dashboard" :active="request()->routeIs('admin.dashboard')">Dashboard</x-sidebar-link>
             <x-sidebar-link href="{{ route('admin.employees.index') }}" icon="users" :active="request()->routeIs('admin.employees.*')">Employees</x-sidebar-link>
             <x-sidebar-link href="{{ route('admin.tasks.create') }}" icon="plus-circle" :active="request()->routeIs('admin.tasks.create')">Create Task</x-sidebar-link>
@@ -10,12 +10,23 @@
             <x-sidebar-link href="{{ route('admin.tasks.index', ['status' => 'overdue']) }}" icon="overdue" :active="request()->routeIs('admin.tasks.index') && request('status') === 'overdue'">Overdue Tasks</x-sidebar-link>
             <x-sidebar-link href="{{ route('admin.reports') }}" icon="chart" :active="request()->routeIs('admin.reports')">Reports</x-sidebar-link>
             <x-sidebar-link href="{{ route('admin.settings') }}" icon="cog" :active="request()->routeIs('admin.settings')">Settings</x-sidebar-link>
+        @elseif (auth()->user()->hasAnyRole(['manager', 'team leader']))
+            <x-sidebar-link href="{{ route('employee.dashboard') }}" icon="dashboard" :active="request()->routeIs('employee.dashboard')">Dashboard</x-sidebar-link>
+            <x-sidebar-link href="{{ route('employee.team.edit') }}" icon="users" :active="request()->routeIs('employee.team.*')">My Team</x-sidebar-link>
+            <x-sidebar-link href="{{ route('employee.assign-tasks.create') }}" icon="plus-circle" :active="request()->routeIs('employee.assign-tasks.create')">Assign Task</x-sidebar-link>
+            <x-sidebar-link href="{{ route('employee.assign-tasks.index') }}" icon="clipboard" :active="request()->routeIs('employee.assign-tasks.index') && ! in_array(request('status'), ['pending', 'completed', 'overdue'])">Team Tasks</x-sidebar-link>
+            <x-sidebar-link href="{{ route('employee.assign-tasks.index', ['status' => 'pending']) }}" icon="clock" :active="request()->routeIs('employee.assign-tasks.index') && request('status') === 'pending'">Pending</x-sidebar-link>
+            <x-sidebar-link href="{{ route('employee.assign-tasks.index', ['status' => 'completed']) }}" icon="check-circle" :active="request()->routeIs('employee.assign-tasks.index') && request('status') === 'completed'">Completed</x-sidebar-link>
+            <x-sidebar-link href="{{ route('employee.assign-tasks.index', ['status' => 'overdue']) }}" icon="overdue" :active="request()->routeIs('employee.assign-tasks.index') && request('status') === 'overdue'">Overdue</x-sidebar-link>
+            <x-sidebar-link href="{{ route('employee.tasks.index') }}" icon="list" :active="request()->routeIs('employee.tasks.*')">My Tasks</x-sidebar-link>
+            <x-sidebar-link href="{{ route('notifications.index') }}" icon="bell" :active="request()->routeIs('notifications.*')" data-notifications-trigger @click.prevent="$nextTick(() => $dispatch('open-notifications'))">Notifications</x-sidebar-link>
+            <x-sidebar-link href="{{ route('profile.edit') }}" icon="user-circle" :active="request()->routeIs('profile.edit')">Profile</x-sidebar-link>
         @else
             <x-sidebar-link href="{{ route('employee.dashboard') }}" icon="dashboard" :active="request()->routeIs('employee.dashboard')">Dashboard</x-sidebar-link>
             <x-sidebar-link href="{{ route('employee.tasks.index') }}" icon="list" :active="request()->routeIs('employee.tasks.*')">My Tasks</x-sidebar-link>
-            <x-sidebar-link href="{{ route('notifications.index') }}" icon="bell" :active="request()->routeIs('notifications.*')">Notifications</x-sidebar-link>
+            <x-sidebar-link href="{{ route('notifications.index') }}" icon="bell" :active="request()->routeIs('notifications.*')" data-notifications-trigger @click.prevent="$nextTick(() => $dispatch('open-notifications'))">Notifications</x-sidebar-link>
             <x-sidebar-link href="{{ route('profile.edit') }}" icon="user-circle" :active="request()->routeIs('profile.edit')">Profile</x-sidebar-link>
-        @endrole
+        @endif
     </nav>
 
     <div class="px-3 py-4 border-t border-navy-700">

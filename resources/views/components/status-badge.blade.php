@@ -4,12 +4,16 @@
 $styles = [
     'pending' => 'bg-warning-50 text-warning-700 border border-warning-500',
     'in_progress' => 'bg-sky-50 text-sky-700 border border-sky-500',
+    'dependency' => 'bg-purple-50 text-purple-700 border border-purple-500',
+    'need_clarification' => 'bg-indigo-50 text-indigo-700 border border-indigo-500',
     'completed' => 'bg-success-50 text-success-700 border border-success-500',
     'overdue' => 'bg-danger-50 text-danger-700 border border-danger-500',
 ];
 $labels = [
     'pending' => 'Pending',
     'in_progress' => 'In Progress',
+    'dependency' => 'Dependency',
+    'need_clarification' => 'Need Clarification',
     'completed' => 'Completed',
     'overdue' => 'Overdue',
 ];

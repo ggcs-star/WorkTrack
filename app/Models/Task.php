@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Task extends Model
 {
@@ -16,6 +17,7 @@ class Task extends Model
         'description',
         'assigned_to',
         'assigned_by',
+        'depends_on_user_id',
         'due_date',
         'priority',
         'status',
@@ -36,6 +38,16 @@ class Task extends Model
     public function assigner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_by');
+    }
+
+    public function dependsOnUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'depends_on_user_id');
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(TaskComment::class)->oldest();
     }
 
     public function getIsOverdueAttribute(): bool

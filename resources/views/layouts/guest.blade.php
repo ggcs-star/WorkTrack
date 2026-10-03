@@ -23,8 +23,8 @@
             </div>
 
             <div class="w-full lg:w-1/2 flex flex-col items-center justify-center px-6 py-4 overflow-y-auto">
-                <div class="w-full max-w-sm">
-                    <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }}" class="h-16 w-auto mx-auto mb-4">
+                <div class="w-full max-w-md">
+                    <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }}" class="h-28 md:h-32 w-auto mx-auto mb-6">
 
                     {{ $slot }}
                 </div>

@@ -7,7 +7,7 @@
 
     <div>
         <x-input-label for="assigned_to" value="Assigned To" />
-        <select id="assigned_to" name="assigned_to" class="block mt-1 w-full border-gray-300 focus:border-sky-500 focus:ring-sky-500 rounded-md shadow-sm" required>
+        <select id="assigned_to" name="assigned_to" x-model="selectedEmployeeId" class="block mt-1 w-full border-gray-300 focus:border-sky-500 focus:ring-sky-500 rounded-md shadow-sm" required>
             <option value="">Select Employee</option>
             @foreach ($employees as $employee)
                 <option value="{{ $employee->id }}" @selected((int) old('assigned_to', $task?->assigned_to) === $employee->id)>{{ $employee->name }}</option>
@@ -44,7 +44,13 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div>
         <x-input-label value="Assigned By" />
-        <x-text-input type="text" class="block mt-1 w-full bg-gray-50" :value="$task?->assigner->name ?? auth()->user()->name" disabled />
+        @php
+            $assigner = $task?->assigner ?? auth()->user();
+            $assignerRole = $assigner->roles->first()->name ?? null;
+            $assignerRoleLabel = $assignerRole ? ($assignerRole === 'hr' ? 'HR' : \Illuminate\Support\Str::headline($assignerRole)) : null;
+            $assignedByText = $assignerRoleLabel ? $assignerRoleLabel.' ('.$assigner->name.')' : $assigner->name;
+        @endphp
+        <x-text-input type="text" class="block mt-1 w-full bg-gray-50" :value="$assignedByText" disabled />
     </div>
 
     <div>

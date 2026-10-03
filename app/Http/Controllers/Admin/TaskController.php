@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\HandlesTaskStatusUpdates;
+use App\Http\Controllers\Concerns\ManagesTaskComments;
+use App\Http\Controllers\Concerns\ValidatesTask;
 use App\Http\Controllers\Controller;
 use App\Models\Task;
 use App\Models\User;
@@ -13,9 +16,11 @@ use Illuminate\View\View;
 
 class TaskController extends Controller
 {
+    use HandlesTaskStatusUpdates, ManagesTaskComments, ValidatesTask;
+
     public function index(Request $request): View
     {
-        $tasks = Task::with(['assignee', 'assigner'])
+        $tasks = Task::with(['assignee.profile', 'assigner', 'comments.user.profile'])
             ->when($request->filled('search'), fn ($q) => $q->where('title', 'like', '%'.$request->input('search').'%'))
             ->when($request->input('status') === 'overdue', fn ($q) => $q->overdue())
             ->when($request->filled('status') && $request->input('status') !== 'overdue', fn ($q) => $q->where('status', $request->input('status')))
@@ -28,6 +33,7 @@ class TaskController extends Controller
         return view('admin.tasks.index', [
             'tasks' => $tasks,
             'employees' => $this->assignableEmployees(),
+            'colleagues' => $this->assignableEmployees(),
         ]);
     }
 
@@ -51,7 +57,9 @@ class TaskController extends Controller
 
     public function show(Task $task): View
     {
-        return view('admin.tasks.show', ['task' => $task->load(['assignee', 'assigner'])]);
+        return view('admin.tasks.show', [
+            'task' => $task->load(['assignee.profile', 'assigner', 'dependsOnUser']),
+        ]);
     }
 
     public function edit(Task $task): View
@@ -82,20 +90,33 @@ class TaskController extends Controller
         return redirect()->route('admin.tasks.show', $task)->with('status', 'Task marked as completed.');
     }
 
-    private function validateTask(Request $request): array
+    public function updateStatus(Request $request, Task $task): RedirectResponse
     {
-        return $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'assigned_to' => ['required', 'exists:users,id'],
-            'due_date' => ['required', 'date'],
+        $this->applyStatusUpdate($request, $task);
+
+        return redirect()->route('admin.tasks.index')->with('status', 'Task status updated.');
+    }
+
+    public function storeComment(Request $request, Task $task): RedirectResponse
+    {
+        $this->postComment($request, $task);
+
+        return back()->with('status', 'Reply posted.');
+    }
+
+    public function updatePriority(Request $request, Task $task): RedirectResponse
+    {
+        $validated = $request->validate([
             'priority' => ['required', Rule::in(['low', 'medium', 'high'])],
-            'remarks' => ['nullable', 'string'],
         ]);
+
+        $task->update(['priority' => $validated['priority']]);
+
+        return redirect()->route('admin.tasks.index')->with('status', 'Task priority updated.');
     }
 
     private function assignableEmployees()
     {
-        return User::whereHas('roles', fn ($q) => $q->whereIn('name', ['employee', 'hr']))->get();
+        return User::whereHas('roles', fn ($q) => $q->where('name', '!=', 'admin'))->with('profile')->get();
     }
 }

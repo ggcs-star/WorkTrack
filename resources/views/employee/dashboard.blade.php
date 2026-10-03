@@ -1,11 +1,11 @@
 @php
 $hour = now()->hour;
-$greeting = $hour < 12 ? 'Good Morning' : ($hour < 17 ? 'Good Afternoon' : 'Good Evening');
+$greeting = $hour < 12 ? 'Hey' : ($hour < 17 ? 'Good Afternoon' : 'Good Evening');
 @endphp
 
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">👋 {{ $greeting }}, {{ Auth::user()->name }}!</h2>
+        <h2 class="font-semibold text-xl text-navy-700 leading-tight">👋 {{ $greeting }}, {{ Auth::user()->name }}!</h2>
         <p class="text-sm text-gray-500">Here's what's happening with your tasks today.</p>
     </x-slot>
 
@@ -56,6 +56,26 @@ $greeting = $hour < 12 ? 'Good Morning' : ($hour < 17 ? 'Good Afternoon' : 'Good
                     <p class="text-sm text-gray-500 mt-2">Every task you complete moves the whole team forward.</p>
                 </div>
             </div>
+
+            @if ($isManager ?? false)
+                <div class="pt-2">
+                    <h3 class="font-semibold text-lg text-navy-700 mb-4">My Team</h3>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <x-stat-card label="Team Size" :value="$teamCount" icon="users" color="navy" />
+                        <x-stat-card label="Team Total Tasks" :value="$teamTotalCount" icon="clipboard" color="sky" />
+                        <x-stat-card label="Team Completed" :value="$teamCompletedCount" icon="check-circle" color="success" />
+                        <x-stat-card label="Team Overdue" :value="$teamOverdueCount" icon="overdue" color="danger" />
+                    </div>
+
+                    <x-due-tasks-panel
+                        title="My Team's Tasks Due"
+                        routeName="employee.assign-tasks.show"
+                        :todayTasks="$teamDueToday"
+                        :weekTasks="$teamDueWeek"
+                        :monthTasks="$teamDueMonth" />
+                </div>
+            @endif
         </div>
     </div>
 </x-app-layout>

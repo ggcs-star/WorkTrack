@@ -1,17 +1,30 @@
+@php
+$pageTitles = [
+    'pending' => 'Pending Tasks',
+    'in_progress' => 'In Progress Tasks',
+    'completed' => 'Completed Tasks',
+    'overdue' => 'Overdue Tasks',
+];
+$pageTitle = $pageTitles[request('status')] ?? 'All Tasks';
+@endphp
+
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ request('status') === 'overdue' ? 'Overdue Tasks' : 'All Tasks' }}
-            </h2>
-            <a href="{{ route('admin.tasks.create') }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sky-700">
-                <x-icon name="plus-circle" class="h-4 w-4" /> Create Task
-            </a>
+        <div>
+            <x-breadcrumb :items="['Dashboard' => route('admin.dashboard'), 'Tasks' => route('admin.tasks.index'), $pageTitle => '']" />
+            <h2 class="font-semibold text-xl text-navy-700 leading-tight">{{ $pageTitle }}</h2>
         </div>
     </x-slot>
 
     <div class="py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-gray-500">{{ __('Manage and assign all tasks across the team') }}</p>
+                <a href="{{ route('admin.tasks.create') }}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-sky-700">
+                    <x-icon name="plus-circle" class="h-4 w-4" /> Create Task
+                </a>
+            </div>
+
             <form method="GET" class="flex flex-wrap gap-3 items-end bg-white rounded-xl shadow-sm p-4">
                 <div class="flex-1 min-w-[180px]">
                     <x-input-label for="search" value="Search" />
@@ -29,6 +42,8 @@
                         <option value="">All</option>
                         <option value="pending" @selected(request('status') === 'pending')>Pending</option>
                         <option value="in_progress" @selected(request('status') === 'in_progress')>In Progress</option>
+                        <option value="dependency" @selected(request('status') === 'dependency')>Dependency</option>
+                        <option value="need_clarification" @selected(request('status') === 'need_clarification')>Need Clarification</option>
                         <option value="completed" @selected(request('status') === 'completed')>Completed</option>
                         <option value="overdue" @selected(request('status') === 'overdue')>Overdue</option>
                     </select>
@@ -59,14 +74,14 @@
 
             <div class="bg-white rounded-xl shadow-sm overflow-hidden">
                 <table class="min-w-full divide-y divide-gray-100">
-                    <thead class="bg-gray-50">
+                    <thead class="bg-sky-600">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Task Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assigned To</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-white uppercase tracking-wide">No</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-white uppercase tracking-wide">Task Name</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-white uppercase tracking-wide">Assigned To</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-white uppercase tracking-wide">Priority</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-white uppercase tracking-wide">Status</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-white uppercase tracking-wide">Due Date</th>
                             <th class="px-6 py-3"></th>
                         </tr>
                     </thead>
@@ -75,22 +90,51 @@
                             <tr>
                                 <td class="px-6 py-3 text-sm text-gray-500">{{ $tasks->firstItem() + $index }}</td>
                                 <td class="px-6 py-3 text-sm text-gray-900">{{ $task->title }}</td>
-                                <td class="px-6 py-3 text-sm text-gray-600">{{ $task->assignee->name ?? '—' }}</td>
-                                <td class="px-6 py-3"><x-priority-badge :priority="$task->priority" /></td>
-                                <td class="px-6 py-3"><x-status-badge :status="$task->effective_status" /></td>
+                                <td class="px-6 py-3 text-sm text-gray-600">
+                                    @if ($task->assignee)
+                                        <div class="flex items-center gap-2">
+                                            <x-avatar :name="$task->assignee->name" :photo="$task->assignee->profile?->photo_path" size="6" />
+                                            {{ $task->assignee->name }}
+                                        </div>
+                                    @else
+                                        —
+                                    @endif
+                                </td>
+                                <td class="px-6 py-3">
+                                    @php
+                                        $priorityStyles = [
+                                            'low' => 'bg-success-50 text-success-700 border-success-500',
+                                            'medium' => 'bg-warning-50 text-warning-700 border-warning-500',
+                                            'high' => 'bg-danger-50 text-danger-700 border-danger-500',
+                                        ];
+                                    @endphp
+                                    <form method="POST" action="{{ route('admin.tasks.update-priority', $task) }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <select name="priority" onchange="this.form.submit()" class="text-xs font-medium rounded pl-2 pr-6 py-1 border cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-500 {{ $priorityStyles[$task->priority] }}">
+                                            <option value="low" @selected($task->priority === 'low')>Low</option>
+                                            <option value="medium" @selected($task->priority === 'medium')>Medium</option>
+                                            <option value="high" @selected($task->priority === 'high')>High</option>
+                                        </select>
+                                    </form>
+                                </td>
+                                <td class="px-6 py-3">
+                                    <x-task-status-select :task="$task" :action="route('admin.tasks.update-status', $task)" :colleagues="$colleagues" />
+                                </td>
                                 <td class="px-6 py-3 text-sm text-gray-600">{{ $task->due_date->format('d M Y') }}</td>
-                                <td class="px-6 py-3 text-right text-sm space-x-2 whitespace-nowrap">
-                                    <a href="{{ route('admin.tasks.show', $task) }}" class="inline-flex text-gray-500 hover:text-gray-700" title="View">
-                                        <x-icon name="eye" class="h-4 w-4" />
+                                <td class="px-6 py-3 text-right text-sm space-x-1.5 whitespace-nowrap">
+                                    <a href="{{ route('admin.tasks.show', $task) }}" title="View">
+                                        <x-icon-button icon="eye" color="gray" />
                                     </a>
-                                    <a href="{{ route('admin.tasks.edit', $task) }}" class="inline-flex text-sky-700 hover:text-sky-900" title="Edit">
-                                        <x-icon name="pencil" class="h-4 w-4" />
+                                    <a href="{{ route('admin.tasks.edit', $task) }}" title="Edit">
+                                        <x-icon-button icon="pencil" color="sky" />
                                     </a>
+                                    <x-task-chat-button :task="$task" :action="route('admin.tasks.comments.store', $task)" />
                                     <form method="POST" action="{{ route('admin.tasks.destroy', $task) }}" class="inline" onsubmit="return confirm('Delete this task?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="inline-flex text-danger-600 hover:text-danger-800" title="Delete">
-                                            <x-icon name="trash" class="h-4 w-4" />
+                                        <button type="submit" title="Delete">
+                                            <x-icon-button icon="trash" color="danger" />
                                         </button>
                                     </form>
                                 </td>
@@ -104,7 +148,10 @@
                 </table>
             </div>
 
-            <div>{{ $tasks->links() }}</div>
+            <div class="flex items-center justify-between">
+                <p class="text-sm text-gray-500">Showing {{ $tasks->firstItem() ?? 0 }} to {{ $tasks->lastItem() ?? 0 }} of {{ $tasks->total() }} entries</p>
+                {{ $tasks->links() }}
+            </div>
         </div>
     </div>
 </x-app-layout>

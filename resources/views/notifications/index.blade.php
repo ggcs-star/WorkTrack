@@ -10,7 +10,7 @@ $typeStyles = [
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Notifications</h2>
+            <h2 class="font-semibold text-xl text-navy-700 leading-tight">Notifications</h2>
             <form method="POST" action="{{ route('notifications.mark-all-read') }}">
                 @csrf
                 <button type="submit" class="text-sm font-medium text-sky-700 hover:text-sky-900">Mark all as read</button>

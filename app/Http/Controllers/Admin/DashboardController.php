@@ -28,6 +28,21 @@ class DashboardController extends Controller
             'pendingTrend' => TrendCalculator::weekOverWeek(Task::where('status', '!=', 'completed')->where('due_date', '>=', today())),
             'overdueTrend' => TrendCalculator::weekOverWeek(Task::overdue()),
             'recentTasks' => Task::with(['assignee', 'assigner'])->latest()->take(5)->get(),
+            'dueToday' => Task::with('assignee')->where('status', '!=', 'completed')
+                ->whereDate('due_date', today())
+                ->orderBy('due_date')
+                ->take(10)
+                ->get(),
+            'dueWeek' => Task::with('assignee')->where('status', '!=', 'completed')
+                ->whereBetween('due_date', [today(), now()->endOfWeek()])
+                ->orderBy('due_date')
+                ->take(10)
+                ->get(),
+            'dueMonth' => Task::with('assignee')->where('status', '!=', 'completed')
+                ->whereBetween('due_date', [today(), now()->endOfMonth()])
+                ->orderBy('due_date')
+                ->take(10)
+                ->get(),
         ]);
     }
 }
