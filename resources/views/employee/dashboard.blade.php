@@ -12,10 +12,10 @@ $greeting = $hour < 12 ? 'Hey' : ($hour < 17 ? 'Good Afternoon' : 'Good Evening'
     <div class="py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <x-stat-card label="Total Assigned" :value="$totalCount" icon="clipboard" color="sky" :trend="$totalTrend" />
-                <x-stat-card label="Completed" :value="$completedCount" icon="check-circle" color="success" :trend="$completedTrend" />
-                <x-stat-card label="Pending" :value="$pendingCount" icon="clock" color="warning" :trend="$pendingTrend" />
-                <x-stat-card label="Overdue" :value="$overdueCount" icon="overdue" color="danger" :trend="$overdueTrend" />
+                <x-stat-card label="Total Assigned" :value="$totalCount" icon="clipboard" color="sky" :trend="$totalTrend" :href="route('employee.tasks.index')" />
+                <x-stat-card label="Completed" :value="$completedCount" icon="check-circle" color="success" :trend="$completedTrend" :href="route('employee.tasks.index', ['status' => 'completed'])" />
+                <x-stat-card label="Pending" :value="$pendingCount" icon="clock" color="warning" :trend="$pendingTrend" :href="route('employee.tasks.index', ['status' => 'pending'])" />
+                <x-stat-card label="Overdue" :value="$overdueCount" icon="overdue" color="danger" :trend="$overdueTrend" :href="route('employee.tasks.index', ['status' => 'overdue'])" />
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-8 gap-6">
@@ -48,13 +48,7 @@ $greeting = $hour < 12 ? 'Hey' : ($hour < 17 ? 'Good Afternoon' : 'Good Evening'
                     </ul>
                 </div>
 
-                <div class="lg:col-span-2 bg-gradient-to-br from-sky-50 to-navy-100 rounded-xl shadow-sm p-6 flex flex-col items-center text-center justify-center">
-                    <div class="h-14 w-14 rounded-full bg-white shadow-sm flex items-center justify-center mb-4">
-                        <x-icon name="check-circle" class="h-7 w-7 text-sky-600" />
-                    </div>
-                    <h3 class="font-semibold text-navy-900">Keep It Up!</h3>
-                    <p class="text-sm text-gray-500 mt-2">Every task you complete moves the whole team forward.</p>
-                </div>
+                <x-recent-activity-feed :comments="$recentComments" />
             </div>
 
             @if ($isManager ?? false)
@@ -62,10 +56,10 @@ $greeting = $hour < 12 ? 'Hey' : ($hour < 17 ? 'Good Afternoon' : 'Good Evening'
                     <h3 class="font-semibold text-lg text-navy-700 mb-4">My Team</h3>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                        <x-stat-card label="Team Size" :value="$teamCount" icon="users" color="navy" />
-                        <x-stat-card label="Team Total Tasks" :value="$teamTotalCount" icon="clipboard" color="sky" />
-                        <x-stat-card label="Team Completed" :value="$teamCompletedCount" icon="check-circle" color="success" />
-                        <x-stat-card label="Team Overdue" :value="$teamOverdueCount" icon="overdue" color="danger" />
+                        <x-stat-card label="Team Size" :value="$teamCount" icon="users" color="navy" :href="route('employee.team.edit')" />
+                        <x-stat-card label="Team Total Tasks" :value="$teamTotalCount" icon="clipboard" color="sky" :href="route('employee.assign-tasks.index')" />
+                        <x-stat-card label="Team Completed" :value="$teamCompletedCount" icon="check-circle" color="success" :href="route('employee.assign-tasks.index', ['status' => 'completed'])" />
+                        <x-stat-card label="Team Overdue" :value="$teamOverdueCount" icon="overdue" color="danger" :href="route('employee.assign-tasks.index', ['status' => 'overdue'])" />
                     </div>
 
                     <x-due-tasks-panel

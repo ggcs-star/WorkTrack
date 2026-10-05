@@ -2,30 +2,29 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\HandlesTaskPriorityUpdates;
 use App\Http\Controllers\Concerns\HandlesTaskStatusUpdates;
+use App\Http\Controllers\Concerns\ManagesAssignableUsers;
 use App\Http\Controllers\Concerns\ManagesTaskComments;
 use App\Http\Controllers\Concerns\ValidatesTask;
 use App\Http\Controllers\Controller;
 use App\Models\Task;
-use App\Models\User;
 use App\Notifications\TaskAssigned;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class TaskController extends Controller
 {
-    use HandlesTaskStatusUpdates, ManagesTaskComments, ValidatesTask;
+    use HandlesTaskPriorityUpdates, HandlesTaskStatusUpdates, ManagesAssignableUsers, ManagesTaskComments, ValidatesTask;
 
     public function index(Request $request): View
     {
         $tasks = Task::with(['assignee.profile', 'assigner', 'comments.user.profile'])
-            ->when($request->filled('search'), fn ($q) => $q->where('title', 'like', '%'.$request->input('search').'%'))
-            ->when($request->input('status') === 'overdue', fn ($q) => $q->overdue())
-            ->when($request->filled('status') && $request->input('status') !== 'overdue', fn ($q) => $q->where('status', $request->input('status')))
-            ->when($request->filled('priority'), fn ($q) => $q->where('priority', $request->input('priority')))
-            ->when($request->filled('assigned_to'), fn ($q) => $q->where('assigned_to', $request->input('assigned_to')))
+            ->search($request->input('search'))
+            ->filterStatus($request->input('status'))
+            ->filterPriority($request->input('priority'))
+            ->filterAssignedTo($request->input('assigned_to'))
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -106,17 +105,8 @@ class TaskController extends Controller
 
     public function updatePriority(Request $request, Task $task): RedirectResponse
     {
-        $validated = $request->validate([
-            'priority' => ['required', Rule::in(['low', 'medium', 'high'])],
-        ]);
-
-        $task->update(['priority' => $validated['priority']]);
+        $this->applyPriorityUpdate($request, $task);
 
         return redirect()->route('admin.tasks.index')->with('status', 'Task priority updated.');
-    }
-
-    private function assignableEmployees()
-    {
-        return User::whereHas('roles', fn ($q) => $q->where('name', '!=', 'admin'))->with('profile')->get();
     }
 }

@@ -3,16 +3,13 @@
 namespace App\Notifications;
 
 use App\Models\Task;
-use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
 
-class TaskDeadlineApproaching extends Notification
+class TaskDeadlineApproaching extends TaskNotification
 {
-    use Queueable;
-
-    public function __construct(public Task $task, public string $period)
+    public function __construct(Task $task, public string $period)
     {
+        parent::__construct($task);
     }
 
     public function via(object $notifiable): array
@@ -43,14 +40,15 @@ class TaskDeadlineApproaching extends Notification
             ->salutation("Best regards,\nWorkTrack Team");
     }
 
-    public function toArray(object $notifiable): array
+    protected function type(): string
+    {
+        return 'deadline';
+    }
+
+    protected function message(object $notifiable): string
     {
         $when = $this->period === 'week' ? 'in 1 week' : 'tomorrow';
 
-        return [
-            'type' => 'deadline',
-            'task_id' => $this->task->id,
-            'message' => '"'.$this->task->title.'" is due '.$when.' ('.$this->task->due_date->format('M d, Y').').',
-        ];
+        return '"'.$this->task->title.'" is due '.$when.' ('.$this->task->due_date->format('M d, Y').').';
     }
 }

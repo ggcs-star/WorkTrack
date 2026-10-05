@@ -1,14 +1,7 @@
 @props(['task', 'action', 'colleagues'])
 
 @php
-    $statusStyles = [
-        'pending' => 'bg-warning-50 text-warning-700 border-warning-500',
-        'in_progress' => 'bg-sky-50 text-sky-700 border-sky-500',
-        'dependency' => 'bg-purple-50 text-purple-700 border-purple-500',
-        'need_clarification' => 'bg-indigo-50 text-indigo-700 border-indigo-500',
-        'completed' => 'bg-success-50 text-success-700 border-success-500',
-    ];
-    $displayStyle = $task->effective_status === 'overdue' ? 'bg-danger-50 text-danger-700 border-danger-500' : $statusStyles[$task->status];
+    $displayStyle = \App\Models\Task::STATUS_STYLES[$task->effective_status]['select'];
 @endphp
 
 <div x-data="{
@@ -38,11 +31,9 @@
                 }
             "
             class="text-xs font-medium rounded-full pl-2.5 pr-6 py-1 border cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-500 {{ $displayStyle }}">
-            <option value="pending" @selected($task->status === 'pending')>Pending</option>
-            <option value="in_progress" @selected($task->status === 'in_progress')>In Progress</option>
-            <option value="dependency" @selected($task->status === 'dependency')>Dependency</option>
-            <option value="need_clarification" @selected($task->status === 'need_clarification')>Need Clarification</option>
-            <option value="completed" @selected($task->status === 'completed')>Completed</option>
+            @foreach (\App\Models\Task::STATUSES as $statusOption)
+                <option value="{{ $statusOption }}" @selected($task->status === $statusOption)>{{ \App\Models\Task::STATUS_STYLES[$statusOption]['label'] }}</option>
+            @endforeach
         </select>
     </form>
 

@@ -1,22 +1,32 @@
 @props(['task', 'action'])
 
 <div class="bg-white rounded-xl shadow-sm p-6 space-y-4">
-    <h3 class="text-sm font-semibold text-navy-900 uppercase tracking-wide pb-2 border-b border-gray-200">
-        Discussion
-    </h3>
+    <div class="flex items-center justify-between pb-2 border-b border-gray-200">
+        <h3 class="text-sm font-semibold text-navy-900 uppercase tracking-wide">
+            Discussion
+        </h3>
+        <button type="button" @click="showChat = false" title="Close" class="text-gray-400 hover:text-gray-600">
+            <x-icon name="x-mark" class="h-5 w-5" />
+        </button>
+    </div>
+
+    @php $viewerIsAdmin = auth()->user()->hasRole('admin'); @endphp
 
     <div class="space-y-4 bg-sky-50/50 rounded-lg p-4 {{ $task->comments->count() > 4 ? 'max-h-96 overflow-y-auto' : '' }}">
         @forelse ($task->comments as $comment)
-            @php $isMe = $comment->user_id === auth()->id(); @endphp
-            <div class="flex gap-2.5 {{ $isMe ? 'flex-row-reverse' : '' }}">
+            @php
+                $isSelf = (int) $comment->user_id === (int) auth()->id();
+                $sameSide = $viewerIsAdmin === $comment->user->hasRole('admin');
+            @endphp
+            <div class="flex gap-2.5 {{ $sameSide ? 'flex-row-reverse' : '' }}">
                 <x-avatar :name="$comment->user->name" :photo="$comment->user->profile?->photo_path" size="8" class="shrink-0" />
-                <div class="flex flex-col max-w-[75%] {{ $isMe ? 'items-end' : 'items-start' }}">
-                    <div class="flex items-baseline gap-2 {{ $isMe ? 'flex-row-reverse' : '' }}">
-                        <p class="text-xs font-medium text-gray-600">{{ $isMe ? 'You' : $comment->user->name }}</p>
+                <div class="flex flex-col max-w-[75%] {{ $sameSide ? 'items-end' : 'items-start' }}">
+                    <div class="flex items-baseline gap-2 {{ $sameSide ? 'flex-row-reverse' : '' }}">
+                        <p class="text-xs font-medium text-gray-600">{{ $isSelf ? 'You' : $comment->user->name }}</p>
                         <p class="text-[11px] text-gray-400">{{ $comment->created_at->diffForHumans() }}</p>
                     </div>
                     <div class="mt-1 px-3.5 py-2 text-sm whitespace-pre-line break-words
-                        {{ $isMe
+                        {{ $sameSide
                             ? 'bg-sky-600 text-white rounded-2xl rounded-tr-sm'
                             : 'bg-white text-gray-800 border border-gray-200 rounded-2xl rounded-tl-sm' }}">
                         {{ $comment->body }}

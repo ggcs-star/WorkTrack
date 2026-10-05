@@ -19,7 +19,7 @@ class EmployeeController extends Controller
 
     public function index(Request $request): View
     {
-        $base = User::whereHas('roles', fn ($q) => $q->where('name', '!=', 'admin'));
+        $base = User::nonAdmin();
 
         $employees = (clone $base)
             ->with(['roles', 'profile'])

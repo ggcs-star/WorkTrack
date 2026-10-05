@@ -33,7 +33,7 @@
     <div>
         <x-input-label for="priority" value="Priority" />
         <select id="priority" name="priority" class="block mt-1 w-full border-gray-300 focus:border-sky-500 focus:ring-sky-500 rounded-md shadow-sm" required>
-            @foreach (['low', 'medium', 'high'] as $priority)
+            @foreach (\App\Models\Task::PRIORITIES as $priority)
                 <option value="{{ $priority }}" @selected(old('priority', $task?->priority ?? 'medium') === $priority)>{{ ucfirst($priority) }}</option>
             @endforeach
         </select>
@@ -47,7 +47,7 @@
         @php
             $assigner = $task?->assigner ?? auth()->user();
             $assignerRole = $assigner->roles->first()->name ?? null;
-            $assignerRoleLabel = $assignerRole ? ($assignerRole === 'hr' ? 'HR' : \Illuminate\Support\Str::headline($assignerRole)) : null;
+            $assignerRoleLabel = $assignerRole ? \App\Support\RoleLabel::for($assignerRole) : null;
             $assignedByText = $assignerRoleLabel ? $assignerRoleLabel.' ('.$assigner->name.')' : $assigner->name;
         @endphp
         <x-text-input type="text" class="block mt-1 w-full bg-gray-50" :value="$assignedByText" disabled />

@@ -11,7 +11,7 @@ trait HandlesTaskStatusUpdates
     private function applyStatusUpdate(Request $request, Task $task): array
     {
         $validated = $request->validate([
-            'status' => ['required', Rule::in(['pending', 'in_progress', 'dependency', 'need_clarification', 'completed'])],
+            'status' => ['required', Rule::in(Task::STATUSES)],
             'reason' => ['required_if:status,dependency,need_clarification', 'nullable', 'string', 'max:2000'],
             'depends_on_user_id' => ['required_if:status,dependency', 'nullable', 'exists:users,id'],
         ]);

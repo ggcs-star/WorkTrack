@@ -2,29 +2,15 @@
 
 namespace App\Notifications;
 
-use App\Models\Task;
-use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
-
-class TeamTaskAssigned extends Notification
+class TeamTaskAssigned extends TaskNotification
 {
-    use Queueable;
-
-    public function __construct(public Task $task)
+    protected function type(): string
     {
+        return 'assigned';
     }
 
-    public function via(object $notifiable): array
+    protected function message(object $notifiable): string
     {
-        return ['database'];
-    }
-
-    public function toArray(object $notifiable): array
-    {
-        return [
-            'type' => 'assigned',
-            'task_id' => $this->task->id,
-            'message' => $this->task->assigner->name.' assigned "'.$this->task->title.'" to '.$this->task->assignee->name.'.',
-        ];
+        return $this->task->assigner->name.' assigned "'.$this->task->title.'" to '.$this->task->assignee->name.'.';
     }
 }

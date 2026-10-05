@@ -1,14 +1,5 @@
 @props(['notifications', 'unreadCount'])
 
-@php
-    $typeStyles = [
-        'assigned' => ['icon' => 'bell', 'color' => 'bg-sky-100 text-sky-700'],
-        'completed' => ['icon' => 'check-circle', 'color' => 'bg-success-100 text-success-700'],
-        'overdue' => ['icon' => 'overdue', 'color' => 'bg-danger-100 text-danger-700'],
-        'deadline' => ['icon' => 'overdue', 'color' => 'bg-warning-100 text-warning-700'],
-    ];
-@endphp
-
 <div class="relative shrink-0" x-data="{ open: false, tab: 'all' }"
     @click.window="if (open && ! $el.contains($event.target) && ! $event.target.closest('[data-notifications-trigger]')) open = false"
     @keydown.escape.window="open = false"
@@ -53,20 +44,8 @@
 
         <div class="max-h-96 overflow-y-auto divide-y divide-gray-50 border-t border-gray-100">
             @forelse ($notifications as $notification)
-                @php $style = $typeStyles[$notification->data['type'] ?? 'assigned'] ?? $typeStyles['assigned']; @endphp
-                <div x-show="tab === 'all' || {{ $notification->read_at ? 'false' : 'true' }}"
-                    class="px-5 py-3 flex items-start gap-3 {{ $notification->read_at ? '' : 'bg-sky-50/60' }}">
-                    <div class="h-9 w-9 rounded-full flex items-center justify-center shrink-0 {{ $style['color'] }}">
-                        <x-icon :name="$style['icon']" class="h-4 w-4" />
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm text-gray-800">{{ $notification->data['message'] ?? '' }}</p>
-                        <p class="text-xs text-gray-400 mt-0.5">{{ $notification->created_at->diffForHumans() }}</p>
-                    </div>
-                    @if (! $notification->read_at)
-                        <span class="h-2 w-2 rounded-full bg-sky-500 mt-2 shrink-0"></span>
-                    @endif
-                </div>
+                <x-notification-item :notification="$notification" size="sm"
+                    x-show="tab === 'all' || {{ $notification->read_at ? 'false' : 'true' }}" />
             @empty
                 <p class="px-5 py-10 text-center text-sm text-gray-400">No notifications yet.</p>
             @endforelse

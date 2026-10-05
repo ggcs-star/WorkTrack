@@ -35,7 +35,7 @@ class TeamController extends Controller
         return view('manager.team.edit', [
             'candidates' => $candidates,
             'teamMembers' => $teamMembers,
-            'teamMemberIds' => $manager->teamMembers()->pluck('users.id')->toArray(),
+            'teamMemberIds' => $manager->teamMemberIds(),
             'departments' => EmployeeProfile::whereNotNull('department')->distinct()->orderBy('department')->pluck('department'),
         ]);
     }

@@ -1,15 +1,3 @@
-@php
-$employeesJson = $employees->map(fn ($e) => [
-    'id' => (string) $e->id,
-    'name' => $e->name,
-    'email' => $e->email,
-    'designation' => $e->profile?->designation,
-    'department' => $e->profile?->department,
-    'mobile' => $e->profile?->mobile_number,
-    'photo' => $e->profile?->photo_path ? asset('storage/'.$e->profile->photo_path) : null,
-])->values();
-@endphp
-
 <x-app-layout>
     <x-slot name="header">
         <div>
@@ -22,14 +10,14 @@ $employeesJson = $employees->map(fn ($e) => [
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
             x-data="{
                 selectedEmployeeId: '{{ old('assigned_to', $task->assigned_to) }}',
-                employees: {{ Illuminate\Support\Js::from($employeesJson) }},
+                employees: {{ Illuminate\Support\Js::from(\App\Support\EmployeePickerData::forJs($employees)) }},
                 get selected() { return this.employees.find(e => e.id === this.selectedEmployeeId) || null }
             }">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 <form method="POST" action="{{ route('employee.assign-tasks.update', $task) }}" class="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 space-y-4">
                     @csrf
                     @method('PUT')
-                    @include('admin.tasks._form', ['task' => $task])
+                    @include('tasks._form', ['task' => $task])
 
                     <div class="flex justify-end gap-3 pt-2">
                         <a href="{{ route('employee.assign-tasks.index') }}">
@@ -42,25 +30,9 @@ $employeesJson = $employees->map(fn ($e) => [
                 </form>
 
                 <div class="lg:col-span-1 space-y-6">
-                    @include('admin.tasks._employee-info-sidebar')
+                    @include('tasks._employee-info-sidebar')
 
-                    <div class="bg-white rounded-xl shadow-sm p-6">
-                        <h3 class="text-sm font-semibold text-navy-900 uppercase tracking-wide pb-2 border-b border-gray-200 mb-4">Quick Actions</h3>
-                        <div class="space-y-2">
-                            @if ($task->status !== 'completed')
-                                <form method="POST" action="{{ route('employee.assign-tasks.mark-completed', $task) }}">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-success-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-success-700">
-                                        <x-icon name="check-circle" class="h-4 w-4" /> Mark as Completed
-                                    </button>
-                                </form>
-                            @endif
-                            <a href="{{ route('employee.assign-tasks.show', $task) }}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-200">
-                                <x-icon name="eye" class="h-4 w-4" /> View Task
-                            </a>
-                        </div>
-                    </div>
+                    @include('tasks._quick-actions', ['routePrefix' => 'employee.assign-tasks'])
                 </div>
             </div>
         </div>

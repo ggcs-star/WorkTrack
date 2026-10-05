@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -71,6 +72,16 @@ class User extends Authenticatable
     public function teamManagers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'team_members', 'employee_id', 'manager_id')->withTimestamps();
+    }
+
+    public function teamMemberIds(): array
+    {
+        return $this->teamMembers()->pluck('users.id')->toArray();
+    }
+
+    public function scopeNonAdmin(Builder $query): Builder
+    {
+        return $query->whereHas('roles', fn ($q) => $q->where('name', '!=', 'admin'));
     }
 
     public function sendPasswordResetNotification($token): void

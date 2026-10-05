@@ -2,20 +2,11 @@
 
 namespace App\Notifications;
 
-use App\Models\Task;
-use Illuminate\Bus\Queueable;
+use App\Support\RoleLabel;
 use Illuminate\Notifications\Messages\MailMessage;
-use Illuminate\Notifications\Notification;
-use Illuminate\Support\Str;
 
-class TaskAssigned extends Notification
+class TaskAssigned extends TaskNotification
 {
-    use Queueable;
-
-    public function __construct(public Task $task)
-    {
-    }
-
     public function via(object $notifiable): array
     {
         return ['mail', 'database'];
@@ -24,7 +15,7 @@ class TaskAssigned extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $assignerRole = $this->task->assigner->roles->first()->name ?? null;
-        $assignerLabel = $assignerRole === 'hr' ? 'HR' : ($assignerRole ? Str::headline($assignerRole) : 'Admin');
+        $assignerLabel = $assignerRole ? RoleLabel::for($assignerRole) : 'Admin';
 
         $mail = (new MailMessage)
             ->subject('New Task Assigned: '.$this->task->title)
@@ -45,12 +36,13 @@ class TaskAssigned extends Notification
             ->salutation("Thank you,\nWorkTrack Team");
     }
 
-    public function toArray(object $notifiable): array
+    protected function type(): string
     {
-        return [
-            'type' => 'assigned',
-            'task_id' => $this->task->id,
-            'message' => 'You have been assigned a new task: '.$this->task->title.'.',
-        ];
+        return 'assigned';
+    }
+
+    protected function message(object $notifiable): string
+    {
+        return 'You have been assigned a new task: '.$this->task->title.'.';
     }
 }

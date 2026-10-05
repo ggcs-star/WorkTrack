@@ -2,29 +2,15 @@
 
 namespace App\Notifications;
 
-use App\Models\Task;
-use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
-
-class TaskCompleted extends Notification
+class TaskCompleted extends TaskNotification
 {
-    use Queueable;
-
-    public function __construct(public Task $task)
+    protected function type(): string
     {
+        return 'completed';
     }
 
-    public function via(object $notifiable): array
+    protected function message(object $notifiable): string
     {
-        return ['database'];
-    }
-
-    public function toArray(object $notifiable): array
-    {
-        return [
-            'type' => 'completed',
-            'task_id' => $this->task->id,
-            'message' => $this->task->assignee->name.' has marked "'.$this->task->title.'" as completed.',
-        ];
+        return $this->task->assignee->name.' has marked "'.$this->task->title.'" as completed.';
     }
 }

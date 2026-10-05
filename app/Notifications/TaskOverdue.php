@@ -2,29 +2,15 @@
 
 namespace App\Notifications;
 
-use App\Models\Task;
-use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
-
-class TaskOverdue extends Notification
+class TaskOverdue extends TaskNotification
 {
-    use Queueable;
-
-    public function __construct(public Task $task)
+    protected function type(): string
     {
+        return 'overdue';
     }
 
-    public function via(object $notifiable): array
+    protected function message(object $notifiable): string
     {
-        return ['database'];
-    }
-
-    public function toArray(object $notifiable): array
-    {
-        return [
-            'type' => 'overdue',
-            'task_id' => $this->task->id,
-            'message' => 'Task "'.$this->task->title.'" is overdue. Please update its status.',
-        ];
+        return 'Task "'.$this->task->title.'" is overdue. Please update its status.';
     }
 }

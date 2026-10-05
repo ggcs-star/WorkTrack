@@ -1,4 +1,4 @@
-@props(['label', 'value', 'icon' => 'chart', 'color' => 'navy', 'trend' => null])
+@props(['label', 'value', 'icon' => 'chart', 'color' => 'navy', 'trend' => null, 'href' => null])
 
 @php
 $colors = [
@@ -8,9 +8,11 @@ $colors = [
     'success' => 'bg-success-100 text-success-700',
     'danger' => 'bg-danger-100 text-danger-700',
 ];
+$tag = $href ? 'a' : 'div';
+$interactiveClass = $href ? ' hover:shadow-md hover:-translate-y-0.5 cursor-pointer' : '';
 @endphp
 
-<div {{ $attributes->merge(['class' => 'bg-white rounded-xl shadow-sm p-5 flex items-center gap-4']) }}>
+<{{ $tag }} @if ($href) href="{{ $href }}" @endif {{ $attributes->merge(['class' => 'bg-white rounded-xl shadow-sm p-5 flex items-center gap-4 transition'.$interactiveClass]) }}>
     <div class="h-12 w-12 rounded-xl flex items-center justify-center shrink-0 {{ $colors[$color] ?? $colors['navy'] }}">
         <x-icon :name="$icon" class="h-6 w-6" />
     </div>
@@ -23,4 +25,4 @@ $colors = [
             </p>
         @endif
     </div>
-</div>
+</{{ $tag }}>

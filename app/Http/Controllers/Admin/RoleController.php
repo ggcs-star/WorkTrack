@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\RoleLabel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
@@ -30,7 +30,7 @@ class RoleController extends Controller
 
         return response()->json([
             'name' => $role->name,
-            'label' => $role->name === 'hr' ? 'HR' : Str::headline($role->name),
+            'label' => RoleLabel::for($role->name),
         ], 201);
     }
 }
