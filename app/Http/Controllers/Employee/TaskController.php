@@ -31,6 +31,8 @@ class TaskController extends Controller
             ->search($request->input('search'))
             ->filterStatus($request->input('status'))
             ->filterPriority($request->input('priority'))
+            ->filterDueFrom($request->input('due_from'))
+            ->filterDueTo($request->input('due_to'))
             ->orderBy('due_date')
             ->paginate(15)
             ->withQueryString();

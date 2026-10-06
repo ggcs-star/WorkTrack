@@ -1,4 +1,4 @@
-@props(['todayTasks', 'weekTasks', 'monthTasks', 'title' => 'Tasks Due', 'routeName'])
+@props(['todayTasks', 'weekTasks', 'monthTasks', 'title' => 'Tasks Due', 'routeName', 'showAssignee' => true])
 
 <div class="bg-white rounded-xl shadow-sm overflow-hidden" x-data="{ tab: 'today' }">
     <div class="px-6 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -25,7 +25,7 @@
                         <x-icon name="clipboard" class="h-4 w-4 mt-0.5 text-gray-400 shrink-0" />
                         <div class="min-w-0">
                             <a href="{{ route($routeName, $task) }}" class="text-sm font-medium text-gray-900 hover:text-sky-700 truncate block">{{ $task->title }}</a>
-                            <p class="text-xs text-gray-400">{{ $task->assignee->name ?? '—' }} &middot; Due {{ $task->due_date->format('d M Y') }}</p>
+                            <p class="text-xs text-gray-400">{{ $showAssignee ? ($task->assignee->name ?? '—').' · ' : '' }}Due {{ $task->due_date->format('d M Y') }}</p>
                         </div>
                     </div>
                     <x-priority-badge :priority="$task->priority" />
@@ -42,7 +42,7 @@
                         <x-icon name="clipboard" class="h-4 w-4 mt-0.5 text-gray-400 shrink-0" />
                         <div class="min-w-0">
                             <a href="{{ route($routeName, $task) }}" class="text-sm font-medium text-gray-900 hover:text-sky-700 truncate block">{{ $task->title }}</a>
-                            <p class="text-xs text-gray-400">{{ $task->assignee->name ?? '—' }} &middot; Due {{ $task->due_date->format('d M Y') }}</p>
+                            <p class="text-xs text-gray-400">{{ $showAssignee ? ($task->assignee->name ?? '—').' · ' : '' }}Due {{ $task->due_date->format('d M Y') }}</p>
                         </div>
                     </div>
                     <x-priority-badge :priority="$task->priority" />
@@ -59,7 +59,7 @@
                         <x-icon name="clipboard" class="h-4 w-4 mt-0.5 text-gray-400 shrink-0" />
                         <div class="min-w-0">
                             <a href="{{ route($routeName, $task) }}" class="text-sm font-medium text-gray-900 hover:text-sky-700 truncate block">{{ $task->title }}</a>
-                            <p class="text-xs text-gray-400">{{ $task->assignee->name ?? '—' }} &middot; Due {{ $task->due_date->format('d M Y') }}</p>
+                            <p class="text-xs text-gray-400">{{ $showAssignee ? ($task->assignee->name ?? '—').' · ' : '' }}Due {{ $task->due_date->format('d M Y') }}</p>
                         </div>
                     </div>
                     <x-priority-badge :priority="$task->priority" />

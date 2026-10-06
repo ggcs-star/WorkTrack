@@ -28,7 +28,12 @@
                         @forelse ($tasks as $index => $task)
                             <tr>
                                 <td class="px-6 py-3 text-sm text-gray-500">{{ $tasks->firstItem() + $index }}</td>
-                                <td class="px-6 py-3 text-sm text-gray-900">{{ $task->title }}</td>
+                                <td class="px-6 py-3 text-sm text-gray-900">
+                                    <div class="flex items-center gap-2">
+                                        {{ $task->title }}
+                                        <x-recurring-badge :task="$task" />
+                                    </div>
+                                </td>
                                 <td class="px-6 py-3 text-sm text-gray-600">{{ $task->due_date->format('d M Y') }}</td>
                                 <td class="px-6 py-3"><x-priority-badge :priority="$task->priority" /></td>
                                 <td class="px-6 py-3">

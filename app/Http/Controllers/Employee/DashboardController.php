@@ -21,6 +21,8 @@ class DashboardController extends Controller
         $totalCount = (clone $base)->count();
         $pendingCount = $totalCount - $completedCount - $overdueCount;
 
+        $dueBuckets = TaskDueBuckets::from(clone $base);
+
         $data = [
             'totalCount' => $totalCount,
             'completedCount' => $completedCount,
@@ -40,6 +42,9 @@ class DashboardController extends Controller
                 ->latest()
                 ->take(5)
                 ->get(),
+            'dueToday' => $dueBuckets['today'],
+            'dueWeek' => $dueBuckets['week'],
+            'dueMonth' => $dueBuckets['month'],
             'isManager' => false,
         ];
 

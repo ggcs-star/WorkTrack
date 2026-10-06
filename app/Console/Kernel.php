@@ -12,6 +12,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
+        $schedule->command('tasks:spawn-overdue-recurring')->dailyAt('00:10');
         $schedule->command('tasks:check-deadlines')->dailyAt('08:00');
     }
 

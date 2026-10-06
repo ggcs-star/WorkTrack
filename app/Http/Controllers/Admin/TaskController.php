@@ -25,6 +25,8 @@ class TaskController extends Controller
             ->filterStatus($request->input('status'))
             ->filterPriority($request->input('priority'))
             ->filterAssignedTo($request->input('assigned_to'))
+            ->filterDueFrom($request->input('due_from'))
+            ->filterDueTo($request->input('due_to'))
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -68,7 +70,7 @@ class TaskController extends Controller
 
     public function update(Request $request, Task $task): RedirectResponse
     {
-        $validated = $this->validateTask($request);
+        $validated = $this->validateTask($request, $task);
 
         $task->update($validated);
 

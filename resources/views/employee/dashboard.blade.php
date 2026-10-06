@@ -51,6 +51,14 @@ $greeting = $hour < 12 ? 'Hey' : ($hour < 17 ? 'Good Afternoon' : 'Good Evening'
                 <x-recent-activity-feed :comments="$recentComments" />
             </div>
 
+            <x-due-tasks-panel
+                title="My Tasks Due"
+                routeName="employee.tasks.show"
+                :todayTasks="$dueToday"
+                :weekTasks="$dueWeek"
+                :monthTasks="$dueMonth"
+                :showAssignee="false" />
+
             @if ($isManager ?? false)
                 <div class="pt-2">
                     <h3 class="font-semibold text-lg text-navy-700 mb-4">My Team</h3>

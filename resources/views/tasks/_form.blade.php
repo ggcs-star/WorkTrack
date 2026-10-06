@@ -23,10 +23,10 @@
     <x-input-error :messages="$errors->get('description')" class="mt-2" />
 </div>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div>
         <x-input-label for="due_date" value="Due Date" />
-        <x-text-input id="due_date" name="due_date" type="date" class="block mt-1 w-full" :value="old('due_date', $task?->due_date?->format('Y-m-d'))" required />
+        <x-text-input id="due_date" name="due_date" type="date" class="block mt-1 w-full" :value="old('due_date', $task?->due_date?->format('Y-m-d'))" :min="$task ? null : now()->format('Y-m-d')" required />
         <x-input-error :messages="$errors->get('due_date')" class="mt-2" />
     </div>
 
@@ -38,6 +38,19 @@
             @endforeach
         </select>
         <x-input-error :messages="$errors->get('priority')" class="mt-2" />
+    </div>
+
+    <div>
+        <x-input-label for="is_recurring" value="Task Type" />
+        <select id="is_recurring" name="is_recurring" class="block mt-1 w-full border-gray-300 focus:border-sky-500 focus:ring-sky-500 rounded-md shadow-sm" required {{ $task?->parent_task_id ? 'disabled' : '' }}>
+            <option value="0" @selected((string) old('is_recurring', (int) ($task?->is_recurring ?? false)) === '0')>One Time</option>
+            <option value="1" @selected((string) old('is_recurring', (int) ($task?->is_recurring ?? false)) === '1')>Repeated (Monthly)</option>
+        </select>
+        @if ($task?->parent_task_id)
+            <input type="hidden" name="is_recurring" value="1">
+            <p class="mt-1 text-xs text-gray-400">Part of a recurring series — type can't change mid-series.</p>
+        @endif
+        <x-input-error :messages="$errors->get('is_recurring')" class="mt-2" />
     </div>
 </div>
 

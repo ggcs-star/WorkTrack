@@ -35,6 +35,7 @@ class TaskViewsRenderTest extends TestCase
             'due_date' => now()->addWeek(),
             'priority' => 'high',
             'status' => 'pending',
+            'is_recurring' => true,
         ]);
 
         $managerTask = Task::create([
@@ -47,21 +48,21 @@ class TaskViewsRenderTest extends TestCase
             'depends_on_user_id' => $manager->id,
         ]);
 
-        // Admin: filter form + shared table + detail card (mark-completed variant)
-        $this->actingAs($admin)->get(route('admin.tasks.index'))->assertOk();
-        $this->actingAs($admin)->get(route('admin.tasks.show', $adminTask))->assertOk();
+        // Admin: filter form + shared table + detail card (mark-completed variant), with the Monthly badge
+        $this->actingAs($admin)->get(route('admin.tasks.index'))->assertOk()->assertSee('Monthly');
+        $this->actingAs($admin)->get(route('admin.tasks.show', $adminTask))->assertOk()->assertSee('Monthly');
         $this->actingAs($admin)->get(route('admin.tasks.create'))->assertOk();
         $this->actingAs($admin)->get(route('admin.tasks.edit', $adminTask))->assertOk();
 
-        // Manager: filter form + shared table + detail card, team-scoped
-        $this->actingAs($manager)->get(route('employee.assign-tasks.index'))->assertOk();
+        // Manager: filter form + shared table + detail card, team-scoped (sees adminTask too, same team)
+        $this->actingAs($manager)->get(route('employee.assign-tasks.index'))->assertOk()->assertSee('Monthly');
         $this->actingAs($manager)->get(route('employee.assign-tasks.show', $managerTask))->assertOk();
         $this->actingAs($manager)->get(route('employee.assign-tasks.create'))->assertOk();
         $this->actingAs($manager)->get(route('employee.assign-tasks.edit', $managerTask))->assertOk();
 
-        // Employee: distinct table + detail card (status-select variant)
-        $this->actingAs($employee)->get(route('employee.tasks.index'))->assertOk();
-        $this->actingAs($employee)->get(route('employee.tasks.show', $adminTask))->assertOk();
+        // Employee: distinct table + detail card (status-select variant), with the Monthly badge
+        $this->actingAs($employee)->get(route('employee.tasks.index'))->assertOk()->assertSee('Monthly');
+        $this->actingAs($employee)->get(route('employee.tasks.show', $adminTask))->assertOk()->assertSee('Monthly');
 
         // Notifications: both dropdown (via layout) and full index page use x-notification-item
         $this->actingAs($employee)->get(route('notifications.index'))->assertOk();
@@ -94,7 +95,8 @@ class TaskViewsRenderTest extends TestCase
         $this->actingAs($employee)->get(route('employee.dashboard'))
             ->assertOk()
             ->assertSee('Recent Activity')
-            ->assertSee('Working on this now.');
+            ->assertSee('Working on this now.')
+            ->assertSee('My Tasks Due');
 
         // Full activity page: admin sees everything, others see only their own scope
         $this->actingAs($admin)->get(route('activity.index'))
@@ -108,5 +110,59 @@ class TaskViewsRenderTest extends TestCase
             ->assertSee('Working on this now.')
             ->assertSee('Still waiting on the dependency.')
             ->assertDontSee('This has nothing to do with the employee.');
+    }
+
+    public function test_task_index_search_matches_assignee_name_and_due_date_range_filters(): void
+    {
+        Role::create(['name' => 'admin']);
+        Role::create(['name' => 'employee']);
+
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $priya = User::factory()->create(['name' => 'Priya Singh']);
+        $priya->assignRole('employee');
+
+        $karan = User::factory()->create(['name' => 'Karan Verma']);
+        $karan->assignRole('employee');
+
+        $priyaTask = Task::create([
+            'title' => 'Conduct Interview',
+            'assigned_to' => $priya->id,
+            'assigned_by' => $admin->id,
+            'due_date' => '2026-10-15',
+            'priority' => 'high',
+            'status' => 'pending',
+        ]);
+
+        $karanTask = Task::create([
+            'title' => 'Update Handbook',
+            'assigned_to' => $karan->id,
+            'assigned_by' => $admin->id,
+            'due_date' => '2026-11-20',
+            'priority' => 'low',
+            'status' => 'pending',
+        ]);
+
+        // Searching by assignee name finds Priya's task, not Karan's.
+        $this->actingAs($admin)
+            ->get(route('admin.tasks.index', ['search' => 'Priya']))
+            ->assertOk()
+            ->assertSee('Conduct Interview')
+            ->assertDontSee('Update Handbook');
+
+        // Searching by task title still works.
+        $this->actingAs($admin)
+            ->get(route('admin.tasks.index', ['search' => 'Handbook']))
+            ->assertOk()
+            ->assertSee('Update Handbook')
+            ->assertDontSee('Conduct Interview');
+
+        // Due date range limited to October 2026 finds only Priya's task.
+        $this->actingAs($admin)
+            ->get(route('admin.tasks.index', ['due_from' => '2026-10-01', 'due_to' => '2026-10-31']))
+            ->assertOk()
+            ->assertSee('Conduct Interview')
+            ->assertDontSee('Update Handbook');
     }
 }

@@ -42,11 +42,14 @@ class Task extends Model
         'status',
         'remarks',
         'completed_at',
+        'is_recurring',
+        'parent_task_id',
     ];
 
     protected $casts = [
         'due_date' => 'date',
         'completed_at' => 'datetime',
+        'is_recurring' => 'boolean',
     ];
 
     public function assignee(): BelongsTo
@@ -67,6 +70,80 @@ class Task extends Model
     public function comments(): HasMany
     {
         return $this->hasMany(TaskComment::class)->oldest();
+    }
+
+    public function parentTask(): BelongsTo
+    {
+        return $this->belongsTo(Task::class, 'parent_task_id');
+    }
+
+    public function childTasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'parent_task_id');
+    }
+
+    /**
+     * The root task id for this recurring series (itself, if it IS the root).
+     */
+    public function getSeriesRootIdAttribute(): int
+    {
+        return $this->parent_task_id ?? $this->id;
+    }
+
+    /**
+     * The next occurrence's due date for a recurring task: always at least one
+     * month after the current due date, advanced further if that's still in the
+     * past (catches up when a task is completed several cycles late).
+     */
+    public function nextOccurrenceDueDate(): \Illuminate\Support\Carbon
+    {
+        $next = $this->due_date->copy()->addMonthNoOverflow();
+
+        while ($next->lt(today())) {
+            $next = $next->addMonthNoOverflow();
+        }
+
+        return $next;
+    }
+
+    /**
+     * Create next month's occurrence of this recurring task, unless it's not
+     * recurring or a successor has already been spawned for that due date.
+     * Called both when a cycle is completed and when one goes overdue unresolved
+     * — either way the series should keep moving; the caller decides whether to
+     * notify the assignee about the new task.
+     */
+    public function spawnNextOccurrenceIfNeeded(): ?self
+    {
+        if (! $this->is_recurring) {
+            return null;
+        }
+
+        $nextDueDate = $this->nextOccurrenceDueDate();
+        $seriesRootId = $this->series_root_id;
+
+        $alreadySpawned = static::where(fn (Builder $q) => $q
+            ->where('id', $seriesRootId)
+            ->orWhere('parent_task_id', $seriesRootId))
+            ->where('due_date', $nextDueDate->toDateString())
+            ->exists();
+
+        if ($alreadySpawned) {
+            return null;
+        }
+
+        return static::create([
+            'title' => $this->title,
+            'description' => $this->description,
+            'assigned_to' => $this->assigned_to,
+            'assigned_by' => $this->assigned_by,
+            'due_date' => $nextDueDate,
+            'priority' => $this->priority,
+            'status' => 'pending',
+            'remarks' => $this->remarks,
+            'is_recurring' => true,
+            'parent_task_id' => $seriesRootId,
+        ]);
     }
 
     public function getIsOverdueAttribute(): bool
@@ -116,7 +193,9 @@ class Task extends Model
 
     public function scopeSearch(Builder $query, ?string $term): Builder
     {
-        return $query->when($term, fn (Builder $q) => $q->where('title', 'like', '%'.$term.'%'));
+        return $query->when($term, fn (Builder $q) => $q->where(fn (Builder $q2) => $q2
+            ->where('title', 'like', '%'.$term.'%')
+            ->orWhereHas('assignee', fn (Builder $q3) => $q3->where('name', 'like', '%'.$term.'%'))));
     }
 
     public function scopeFilterStatus(Builder $query, ?string $status): Builder
@@ -134,5 +213,15 @@ class Task extends Model
     public function scopeFilterAssignedTo(Builder $query, ?int $assignedTo): Builder
     {
         return $query->when($assignedTo, fn (Builder $q) => $q->where('assigned_to', $assignedTo));
+    }
+
+    public function scopeFilterDueFrom(Builder $query, ?string $date): Builder
+    {
+        return $query->when($date, fn (Builder $q) => $q->whereDate('due_date', '>=', $date));
+    }
+
+    public function scopeFilterDueTo(Builder $query, ?string $date): Builder
+    {
+        return $query->when($date, fn (Builder $q) => $q->whereDate('due_date', '<=', $date));
     }
 }

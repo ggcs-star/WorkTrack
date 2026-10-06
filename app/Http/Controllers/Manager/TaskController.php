@@ -29,6 +29,8 @@ class TaskController extends Controller
             ->filterStatus($request->input('status'))
             ->filterPriority($request->input('priority'))
             ->filterAssignedTo($request->input('assigned_to'))
+            ->filterDueFrom($request->input('due_from'))
+            ->filterDueTo($request->input('due_to'))
             ->latest()
             ->paginate(15)
             ->withQueryString();
@@ -82,7 +84,7 @@ class TaskController extends Controller
     {
         abort_unless($request->user()->can('manage', $task), 404);
 
-        $validated = $this->validateTask($request);
+        $validated = $this->validateTask($request, $task);
         abort_unless($request->user()->can('assignTo', [Task::class, (int) $validated['assigned_to']]), 404);
 
         $task->update($validated);

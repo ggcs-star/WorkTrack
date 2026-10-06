@@ -18,9 +18,12 @@
     <div class="py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-white rounded-xl shadow-sm p-6 space-y-6">
-                <div class="flex items-start justify-between">
-                    <h2 class="text-xl font-semibold text-navy-700">{{ $task->title }}</h2>
-                    <x-status-badge :status="$task->effective_status" class="!text-sm" />
+                <div class="flex items-start justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-xl font-semibold text-navy-700">{{ $task->title }}</h2>
+                        <x-recurring-badge :task="$task" />
+                    </div>
+                    <x-status-badge :status="$task->effective_status" class="!text-sm shrink-0" />
                 </div>
 
                 <dl class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 text-sm">
@@ -60,6 +63,19 @@
                         <dt class="text-gray-500">Completion Date</dt>
                         <dd class="mt-1 text-gray-900">{{ $task->completed_at?->format('d M Y') ?? '—' }}</dd>
                     </div>
+                    @if ($task->is_recurring)
+                        @php
+                            $occurrenceNumber = \App\Models\Task::where(fn ($q) => $q
+                                ->where('id', $task->series_root_id)
+                                ->orWhere('parent_task_id', $task->series_root_id))
+                                ->where('due_date', '<=', $task->due_date)
+                                ->count();
+                        @endphp
+                        <div>
+                            <dt class="text-gray-500">Recurrence</dt>
+                            <dd class="mt-1 text-gray-900">Monthly &middot; occurrence #{{ $occurrenceNumber }}</dd>
+                        </div>
+                    @endif
                     @if ($task->status === 'dependency' && $task->dependsOnUser)
                         <div>
                             <dt class="text-gray-500">Depends On</dt>
