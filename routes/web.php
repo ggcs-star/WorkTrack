@@ -13,6 +13,7 @@ use App\Http\Controllers\Manager\TaskController as ManagerTaskController;
 use App\Http\Controllers\Manager\TeamController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TaskRedirectController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -45,6 +46,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
 
     Route::get('/activity', [ActivityController::class, 'index'])->name('activity.index');
+
+    Route::get('/tasks/{task}/open', [TaskRedirectController::class, 'show'])->name('tasks.open');
 });
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {

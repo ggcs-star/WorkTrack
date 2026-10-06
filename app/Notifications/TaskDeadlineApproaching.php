@@ -34,7 +34,7 @@ class TaskDeadlineApproaching extends TaskNotification
             ->line('**Due Date:** '.$this->task->due_date->format('d F Y'))
             ->line('**Action Required:**')
             ->line('Please complete the task before the due date and update the task status in WorkTrack once the work is completed.')
-            ->action('View Task', route('employee.tasks.show', $this->task))
+            ->action('View Task', route('tasks.open', $this->task))
             ->line('If you are unable to complete the task due to a dependency, clarification, or other blocker, please update the task status and provide the relevant details in WorkTrack.')
             ->line('Thank you for your timely attention.')
             ->salutation("Best regards,\nWorkTrack Team");

@@ -31,7 +31,7 @@ class TaskAssigned extends TaskNotification
             ->line('**Due Date:** '.$this->task->due_date->format('d M Y'))
             ->line('**Priority:** '.ucfirst($this->task->priority))
             ->line('Please ensure the task is reviewed and completed within the specified deadline. If you have any questions, require clarification, or are dependent on another team member, please update the task status accordingly in WorkTrack.')
-            ->action('View Task', route('employee.tasks.show', $this->task))
+            ->action('View Task', route('tasks.open', $this->task))
             ->line('Please review the task details and get started at your earliest convenience.')
             ->salutation("Thank you,\nWorkTrack Team");
     }
